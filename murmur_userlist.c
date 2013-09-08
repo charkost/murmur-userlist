@@ -34,8 +34,8 @@ int main(void)
 	};
 	unsigned char read_buffer[READ_BUFFER_SIZE];
 	struct sockaddr_in serv_addr;
-	int adder_sockfd = 0;
-	unsigned char *username = read_buffer;
+	int adder_sockfd = 0, user_counter = 0;
+	unsigned char *username = read_buffer + 50;
 
 	if ((adder_sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
 		fprintf(stderr, "\nError: Could not create socket\n");
@@ -76,15 +76,15 @@ int main(void)
 
 	/* read_buffer[25] = number of users */
 	printf("%u Online Client%s%s", read_buffer[25], read_buffer[25] == 1 ? "" : "s", read_buffer[25] == 0 ? "" : ": ");
-	
-	while(read_buffer[25]-- > 0x0) {
 
-		while(!((username[0] == 0xff) && (username[1] == 0xff) && (username[2] == 0xff) && (username[3] == 0xff)))
-			username++;
-
-		username += 0x10;
+	while(user_counter++ < read_buffer[25]) {
+		if(user_counter > 1) {
+			while(!((username[0] == 0x0) && (username[1] == 0x0) && (username[2] == 0xff) && (username[3] == 0xff)))
+				username++;
+			username += 0x2d;
+		}
 		username[(unsigned)*(username - 1)] = '\0';
-		printf(read_buffer[25] != 0 ? "%s, " : "%s", username);
+		printf(user_counter < read_buffer[25] ? "%s, " : "%s", username);
 	}
 
 	printf("\n");
